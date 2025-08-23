@@ -1,0 +1,143 @@
+.heatmap-container {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid var(--border);
+}
+
+.heatmap-header {
+  margin-bottom: 20px;
+}
+
+.heatmap-content {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.heatmap {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  background: var(--bg-secondary);
+}
+
+.heatmap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.heatmap-legend {
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+
+.legend-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend-item span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.heatmap-explanation {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.heatmap-explanation h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #0369A1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heatmap-explanation h4::before {
+  content: "🧬";
+  font-size: 18px;
+}
+
+.explanation-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #0C4A6E;
+  margin-bottom: 12px;
+}
+
+.explanation-content p:last-child {
+  margin-bottom: 0;
+}
+
+.explanation-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #0C4A6E;
+}
+
+.explanation-content li {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.explanation-content strong {
+  font-weight: 600;
+  color: #0369A1;
+}
+
+@media (max-width: 768px) {
+  .heatmap {
+    height: 250px;
+  }
+  
+  .heatmap-legend {
+    padding: 12px 16px;
+  }
+  
+  .legend {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .heatmap-explanation {
+    padding: 16px;
+  }
+  
+  .explanation-content ul {
+    padding-left: 16px;
+  }
+}

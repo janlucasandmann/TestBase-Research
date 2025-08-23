@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaGenome Research Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066FF;
+            --secondary: #6B7280;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F9FAFB;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --hover: #F3F4F6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            border-radius: 8px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: var(--hover);
+        }
+
+        .nav-tab.active {
+            background: var(--text-primary);
+            color: white;
+        }
+
+        .main-content {
+            padding: 32px 0;
+        }
+
+        .research-question-section {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .research-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .info-card {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .info-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .info-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .filter-bar {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            background: var(--hover);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .visualization-section {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .viz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .viz-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .viz-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .track-container {
+            margin-bottom: 24px;
+        }
+
+        .track-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .track {
+            height: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .track-bar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: #374151;
+            opacity: 0.8;
+        }
+
+        .track-bar.reference {
+            background: #374151;
+        }
+
+        .track-bar.mutated {
+            background: #DC2626;
+        }
+
+        .track-bar.difference {
+            background: #F59E0B;
+        }
+
+        .heatmap-container {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .heatmap {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .hypotheses-section {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .hypothesis-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .hypothesis-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .hypothesis-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .glossary {
+            background: #FEF3C7;
+            border: 1px solid #FCD34D;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .glossary-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400E;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .glossary-term {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #78350F;
+        }
+
+        .glossary-term strong {
+            color: #92400E;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .research-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    AlphaGenome Research
+                </div>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" onclick="showSection('research')">Forschungsfrage</button>
+                    <button class="nav-tab" onclick="showSection('visualization')">Visualisierung</button>
+                    <button class="nav-tab" onclick="showSection('about')">Über AlphaGenome</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Research Question Section -->
+            <div id="research-section" class="section">
+                <div class="research-question-section">
+                    <div class="section-label">Forschungsfrage</div>
+                    <h1 class="research-title">
+                        Beeinflussen nicht-kodierende Varianten die MGMT-Expression bei Glioblastom?
+                    </h1>
+                    
+                    <div class="glossary">
+                        <div class="glossary-title">
+                            💡 Wichtige Begriffe einfach erklärt
+                        </div>
+                        <div class="glossary-term">
+                            <strong>MGMT:</strong> Ein Reparatur-Gen, das Schäden in unserer DNA behebt
+                        </div>
+                        <div class="glossary-term">
+                            <strong>Glioblastom:</strong> Eine aggressive Form von Hirntumor
+                        </div>
+                        <div class="glossary-term">
+                            <strong>Temozolomid (TMZ):</strong> Ein Chemotherapie-Medikament gegen Hirntumore
+                        </div>
+                        <div class="glossary-term">
+                            <strong>Enhancer:</strong> DNA-Abschnitte, die Gene ein- und ausschalten können
+                        </div>
+                        <div class="glossary-term">
+                            <strong>Somatische Varianten:</strong> DNA-Veränderungen, die nur in Tumorzellen auftreten
+                        </div>
+                    </div>
+
+                    <div class="research-grid">
+                        <div class="info-card">
+                            <h3>
+                                <span class="info-card-icon" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);"></span>
+                                Was ist die Frage?
+                            </h3>
+                            <p>
+                                Wir untersuchen, ob DNA-Veränderungen außerhalb des MGMT-Gens selbst beeinflussen, wie aktiv dieses Gen ist. Diese Veränderungen könnten neue "Schalter" (Enhancer) erschaffen oder bestehende zerstören, die das MGMT-Gen regulieren. Das könnte erklären, warum manche Patienten auf die Chemotherapie ansprechen und andere nicht.
+                            </p>
+                        </div>
+
+                        <div class="info-card">
+                            <h3>
+                                <span class="info-card-icon" style="background: linear-gradient(135deg, #10B981, #059669);"></span>
+                                Warum ist das wichtig?
+                            </h3>
+                            <p>
+                                MGMT repariert genau die DNA-Schäden, die Temozolomid verursacht. Wenn MGMT sehr aktiv ist, repariert es die Schäden schnell und das Medikament wirkt nicht. Bisher schauen Ärzte nur auf eine spezielle Markierung (Methylierung) am MGMT-Gen, aber das erklärt nicht alle Fälle. Unsere Forschung könnte zu besseren Vorhersagen und personalisierten Therapien führen.
+                            </p>
+                        </div>
+
+                        <div class="info-card">
+                            <h3>
+                                <span class="info-card-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);"></span>
+                                Was ist noch unbekannt?
+                            </h3>
+                            <p>
+                                98% unserer DNA kodiert keine Proteine, sondern reguliert, wann und wie stark Gene aktiv sind - die "dunkle Materie" des Genoms. Wir wissen nicht, ob Tumor-spezifische Mutationen in diesen regulatorischen Bereichen um das MGMT-Gen herum dessen Aktivität beeinflussen und damit die Therapie-Antwort verändern.
+                            </p>
+                        </div>
+
+                        <div class="info-card">
+                            <h3>
+                                <span class="info-card-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);"></span>
+                                Wie hilft AlphaGenome?
+                            </h3>
+                            <p>
+                                AlphaGenome kann vorhersagen, wie DNA-Veränderungen die Genregulation beeinflussen - ohne aufwändige Labor-Experimente. Es analysiert bis zu 1 Million DNA-Bausteine und sagt vorher, wo Gene anfangen und enden, wie RNA produziert wird und welche Proteine an die DNA binden. So können wir schnell tausende Mutationen testen.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="hypotheses-section">
+                        <h3 style="margin-bottom: 16px; font-size: 16px;">Unsere Hypothesen</h3>
+                        
+                        <div class="hypothesis-item">
+                            <div class="hypothesis-title">Hypothese 1: Neue Enhancer entstehen</div>
+                            <div class="hypothesis-text">
+                                Mutationen könnten neue Bindestellen für Transkriptionsfaktoren schaffen, die als Enhancer fungieren und die MGMT-Expression erhöhen. AlphaGenome würde erhöhte TF-Bindung und gesteigerte RNA-Produktion in mutierten Sequenzen zeigen.
+                            </div>
+                        </div>
+
+                        <div class="hypothesis-item">
+                            <div class="hypothesis-title">Hypothese 2: Bestehende Enhancer werden zerstört</div>
+                            <div class="hypothesis-text">
+                                Mutationen könnten wichtige regulatorische Elemente unterbrechen, was zu verringerter MGMT-Expression führt. Dies würde sich in reduzierter Chromatin-Zugänglichkeit und verminderter Histon-Modifikation zeigen.
+                            </div>
+                        </div>
+
+                        <div class="hypothesis-item">
+                            <div class="hypothesis-title">Hypothese 3: 3D-Struktur-Änderungen</div>
+                            <div class="hypothesis-text">
+                                Varianten könnten die räumliche Organisation der DNA verändern und entfernte Enhancer näher an oder weiter weg vom MGMT-Promotor bringen. Die Chromatin-Kontaktkarten würden deutliche Unterschiede zwischen Referenz und mutierter DNA zeigen.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div id="visualization-section" class="section" style="display: none;">
+                <div class="filter-bar">
+                    <span class="filter-label">Ansicht wählen:</span>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="changeView('reference')">Referenz DNA</button>
+                        <button class="filter-btn" onclick="changeView('mutated')">Mutierte DNA</button>
+                        <button class="filter-btn" onclick="changeView('difference')">Unterschiede</button>
+                    </div>
+                </div>
+
+                <div class="visualization-section">
+                    <div class="viz-header">
+                        <div>
+                            <div class="viz-title">AlphaGenome Vorhersagen</div>
+                            <div class="viz-subtitle">MGMT regulatorische Region (chr10:131,264,000-131,267,000)</div>
+                        </div>
+                    </div>
+
+                    <div class="track-container">
+                        <div class="track-label">
+                            Gen-Expression
+                            <span style="font-size: 11px; color: #9CA3AF;">(RNA-seq Signal)</span>
+                        </div>
+                        <div class="track" id="gene-expression-track"></div>
+                    </div>
+
+                    <div class="track-container">
+                        <div class="track-label">
+                            Chromatin-Zugänglichkeit
+                            <span style="font-size: 11px; color: #9CA3AF;">(ATAC-seq Signal)</span>
+                        </div>
+                        <div class="track" id="accessibility-track"></div>
+                    </div>
+
+                    <div class="track-container">
+                        <div class="track-label">
+                            Histon-Modifikationen
+                            <span style="font-size: 11px; color: #9CA3AF;">(H3K27ac Enhancer-Markierung)</span>
+                        </div>
+                        <div class="track" id="histone-track"></div>
+                    </div>
+
+                    <div class="track-container">
+                        <div class="track-label">
+                            Transkriptionsfaktor-Bindung
+                            <span style="font-size: 11px; color: #9CA3AF;">(ChIP-seq Peaks)</span>
+                        </div>
+                        <div class="track" id="tf-binding-track"></div>
+                    </div>
+
+                    <div class="track-container">
+                        <div class="track-label">
+                            Splicing-Muster
+                            <span style="font-size: 11px; color: #9CA3AF;">(Exon-Inklusion)</span>
+                        </div>
+                        <div class="track" id="splicing-track"></div>
+                    </div>
+
+                    <div class="heatmap-container">
+                        <div class="track-label">
+                            Chromatin-Kontaktkarte
+                            <span style="font-size: 11px; color: #9CA3AF;">(Hi-C Interaktionen)</span>
+                        </div>
+                        <div class="heatmap" id="contact-map">
+                            <canvas id="heatmap-canvas"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #FEF3C7;"></div>
+                                <span>Schwache Interaktion</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #FCD34D;"></div>
+                                <span>Mittlere Interaktion</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #F59E0B;"></div>
+                                <span>Starke Interaktion</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #DC2626;"></div>
+                                <span>Sehr starke Interaktion</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div id="about-section" class="section" style="display: none;">
+                <div class="research-question-section">
+                    <div class="section-label">Über die Technologie</div>
+                    <h2 class="research-title">Was ist AlphaGenome?</h2>
+                    
+                    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 24px;">
+                        AlphaGenome ist ein KI-Modell von Google DeepMind, das die regulatorische Sprache der DNA entschlüsselt. 
+                        Es kann vorhersagen, wie kleine Änderungen in der DNA-Sequenz die Genaktivität beeinflussen - 
+                        eine Aufgabe, die normalerweise aufwändige Laborexperimente erfordert.
+                    </p>
+
+                    <div class="research-grid">
+                        <div class="info-card">
+                            <h3>Eingabe</h3>
+                            <p>DNA-Sequenzen bis zu 1 Million Basenpaare</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Ausgabe</h3>
+                            <p>Tausende molekulare Eigenschaften und regulatorische Aktivitäten</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Genauigkeit</h3>
+                            <p>Übertrifft spezialisierte Modelle in 22 von 24 Benchmark-Tests</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Beispieldaten als JSON-Objekte
+        const genomicData = {
+            reference: {
+                geneExpression: [
+                    {position: 10, value: 0.2},
+                    {position: 15, value: 0.3},
+                    {position: 25, value: 0.5},
+                    {position: 35, value: 0.7},
+                    {position: 45, value: 0.8},
+                    {position: 60, value: 0.6},
+                    {position: 75, value: 0.4},
+                    {position: 85, value: 0.3},
+                    {position: 90, value: 0.9},
+                    {position: 95, value: 0.7}
+                ],
+                accessibility: [
+                    {position: 5, value: 0.3},
+                    {position: 20, value: 0.6},
+                    {position: 30, value: 0.8},
+                    {position: 40, value: 0.7},
+                    {position: 55, value: 0.9},
+                    {position: 70, value: 0.5},
+                    {position: 80, value: 0.4},
+                    {position: 92, value: 0.8}
+                ],
+                histoneModifications: [
+                    {position: 8, value: 0.4},
+                    {position: 18, value: 0.6},
+                    {position: 28, value: 0.8},
+                    {position: 38, value: 0.9},
+                    {position: 48, value: 0.7},
+                    {position: 58, value: 0.5},
+                    {position: 68, value: 0.6},
+                    {position: 78, value: 0.7},
+                    {position: 88, value: 0.8},
+                    {position: 93, value: 0.9}
+                ],
+                tfBinding: [
+                    {position: 12, value: 0.9},
+                    {position: 22, value: 0.8},
+                    {position: 42, value: 0.7},
+                    {position: 52, value: 0.9},
+                    {position: 72, value: 0.6},
+                    {position: 82, value: 0.8},
+                    {position: 91, value: 0.9}
+                ],
+                splicing: [
+                    {position: 0, value: 0.8},
+                    {position: 5, value: 0.9},
+                    {position: 10, value: 0.7},
+                    {position: 15, value: 0.8},
+                    {position: 30, value: 0.9},
+                    {position: 35, value: 0.8},
+                    {position: 40, value: 0.7},
+                    {position: 45, value: 0.9},
+                    {position: 50, value: 0.8},
+                    {position: 55, value: 0.9},
+                    {position: 65, value: 0.8},
+                    {position: 70, value: 0.9},
+                    {position: 75, value: 0.7},
+                    {position: 80, value: 0.8},
+                    {position: 85, value: 0.9},
+                    {position: 95, value: 0.8}
+                ]
+            },
+            mutated: {
+                geneExpression: [
+                    {position: 10, value: 0.3},
+                    {position: 15, value: 0.5},
+                    {position: 25, value: 0.8},
+                    {position: 35, value: 0.9},
+                    {position: 45, value: 0.95},
+                    {position: 60, value: 0.85},
+                    {position: 75, value: 0.7},
+                    {position: 85, value: 0.6},
+                    {position: 90, value: 0.95},
+                    {position: 95, value: 0.9}
+                ],
+                accessibility: [
+                    {position: 5, value: 0.2},
+                    {position: 20, value: 0.4},
+                    {position: 30, value: 0.9},
+                    {position: 40, value: 0.95},
+                    {position: 55, value: 0.85},
+                    {position: 70, value: 0.3},
+                    {position: 80, value: 0.6},
+                    {position: 92, value: 0.95}
+                ],
+                histoneModifications: [
+                    {position: 8, value: 0.2},
+                    {position: 18, value: 0.3},
+                    {position: 28, value: 0.9},
+                    {position: 38, value: 0.95},
+                    {position: 48, value: 0.85},
+                    {position: 58, value: 0.3},
+                    {position: 68, value: 0.4},
+                    {position: 78, value: 0.5},
+                    {position: 88, value: 0.95},
+                    {position: 93, value: 0.98}
+                ],
+                tfBinding: [
+                    {position: 12, value: 0.95},
+                    {position: 22, value: 0.9},
+                    {position: 35, value: 0.95},
+                    {position: 42, value: 0.85},
+                    {position: 52, value: 0.98},
+                    {position: 72, value: 0.4},
+                    {position: 82, value: 0.9},
+                    {position: 91, value: 0.98}
+                ],
+                splicing: [
+                    {position: 0, value: 0.6},
+                    {position: 5, value: 0.7},
+                    {position: 10, value: 0.5},
+                    {position: 15, value: 0.9},
+                    {position: 30, value: 0.95},
+                    {position: 35, value: 0.9},
+                    {position: 40, value: 0.8},
+                    {position: 45, value: 0.95},
+                    {position: 50, value: 0.9},
+                    {position: 55, value: 0.85},
+                    {position: 65, value: 0.7},
+                    {position: 70, value: 0.8},
+                    {position: 75, value: 0.6},
+                    {position: 80, value: 0.9},
+                    {position: 85, value: 0.95},
+                    {position: 95, value: 0.9}
+                ]
+            }
+        };
+
+        let currentView = 'reference';
+
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Initialize visualization if showing visualization section
+            if (section === 'visualization') {
+                renderTracks();
+                renderHeatmap();
+            }
+        }
+
+        function changeView(view) {
+            currentView = view;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Re-render tracks
+            renderTracks();
+            renderHeatmap();
+        }
+
+        function renderTracks() {
+            const tracks = ['gene-expression', 'accessibility', 'histone', 'tf-binding', 'splicing'];
+            const dataKeys = ['geneExpression', 'accessibility', 'histoneModifications', 'tfBinding', 'splicing'];
+            
+            tracks.forEach((trackId, index) => {
+                const track = document.getElementById(trackId + '-track');
+                track.innerHTML = '';
+                
+                let data;
+                if (currentView === 'reference') {
+                    data = genomicData.reference[dataKeys[index]];
+                } else if (currentView === 'mutated') {
+                    data = genomicData.mutated[dataKeys[index]];
+                } else {
+                    // Show differences
+                    const refData = genomicData.reference[dataKeys[index]];
+                    const mutData = genomicData.mutated[dataKeys[index]];
+                    data = mutData.map((mut, i) => {
+                        const ref = refData[i] || {position: mut.position, value: 0};
+                        return {
+                            position: mut.position,
+                            value: Math.abs(mut.value - ref.value)
+                        };
+                    });
+                }
+                
+                data.forEach(point => {
+                    const bar = document.createElement('div');
+                    bar.className = 'track-bar ' + currentView;
+                    bar.style.left = point.position + '%';
+                    bar.style.width = Math.random() * 3 + 1 + '%';
+                    bar.style.opacity = point.value;
+                    track.appendChild(bar);
+                });
+            });
+        }
+
+        function renderHeatmap() {
+            const canvas = document.getElementById('heatmap-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 200;
+            
+            // Generate heatmap data
+            const size = 50;
+            const cellWidth = canvas.width / size;
+            const cellHeight = canvas.height / size;
+            
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    // Generate different patterns for different views
+                    let intensity;
+                    if (currentView === 'reference') {
+                        intensity = Math.abs(i - j) < 10 ? Math.random() * 0.8 + 0.2 : Math.random() * 0.3;
+                    } else if (currentView === 'mutated') {
+                        intensity = Math.abs(i - j) < 15 ? Math.random() * 0.9 + 0.1 : Math.random() * 0.2;
+                    } else {
+                        intensity = Math.abs(i - j) < 12 ? Math.random() * 0.7 : Math.random() * 0.1;
+                    }
+                    
+                    // Color based on intensity
+                    if (intensity > 0.75) {
+                        ctx.fillStyle = '#DC2626';
+                    } else if (intensity > 0.5) {
+                        ctx.fillStyle = '#F59E0B';
+                    } else if (intensity > 0.25) {
+                        ctx.fillStyle = '#FCD34D';
+                    } else {
+                        ctx.fillStyle = '#FEF3C7';
+                    }
+                    
+                    ctx.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+                }
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            // Initial render if on visualization page
+            if (document.getElementById('visualization-section').style.display !== 'none') {
+                renderTracks();
+                renderHeatmap();
+            }
+        });
+    </script>
+</body>
+</html>

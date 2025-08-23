@@ -35,24 +35,33 @@ print(results['report'])  # Markdown report with visualizations
 
 ## 🔬 Overview
 
-This pipeline leverages AlphaGenome to:
+This pipeline leverages AlphaGenome with **real clinical data integration** to:
+- **Analyze real patient mutations** from cBioPortal and TCGA studies
 - Discover how non-coding variants create cancer-driving enhancers
 - Understand tissue-specific vulnerabilities in cancer
 - Map long-range regulatory interactions (up to 1Mb)
 - Predict splicing dysregulation from variants
 - Generate publication-quality visualizations and reports
 
+### 🩺 Clinical Data Integration (NEW!)
+
+The pipeline now integrates with **cBioPortal** to analyze real clinical mutations:
+- **Real patient data**: Fetches mutations from TCGA glioblastoma studies
+- **Robust fallback system**: Uses documented clinical variants when API fails
+- **Clinical correlation**: Links regulatory predictions to patient outcomes
+- **Multiple cancer studies**: TCGA, MSK-IMPACT, and other major databases
+
 ## 📦 Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/TestBase-Research.git
+   git clone https://github.com/janlucasandmann/TestBase-Research.git
    cd TestBase-Research
    ```
 
 2. **Install dependencies:**
    ```bash
-   pip install alphagenome pandas numpy matplotlib
+   pip install alphagenome pandas numpy matplotlib requests
    ```
 
 3. **Verify installation:**
@@ -83,7 +92,25 @@ ALPHAGENOME_API_KEY=your_api_key_here
 
 ## 💡 Usage Examples
 
-### 1. Simple Question-Based Analysis
+### 1. Clinical Data Analysis (NEW!)
+
+```python
+from mgmt_research_analysis import MGMTClinicalPipeline
+
+# Analyze real clinical mutations from glioblastoma patients
+pipeline = MGMTClinicalPipeline("YOUR_ALPHAGENOME_API_KEY")
+
+# Automatically fetches real mutations from cBioPortal + TCGA studies
+results = pipeline.run_complete_analysis()
+
+# Results include:
+# - Real clinical variants from glioblastoma patients
+# - cBioPortal integration with fallback system
+# - Clinical correlation analysis
+# - Complete regulatory analysis using patient mutations
+```
+
+### 2. Simple Question-Based Analysis
 
 ```python
 from alphagenome_cancer_pipeline import analyze_regulatory_cancer_mechanism
@@ -204,7 +231,22 @@ results = pipeline.find_convergent_mechanisms(
 
 ## 🧬 Pipeline Capabilities
 
-### 1. **Regulatory Landscape Mapping**
+### 1. **Clinical Mutation Analysis** (NEW!)
+```python
+from mgmt_research_analysis import MGMTClinicalPipeline
+
+# Analyze real patient mutations
+pipeline = MGMTClinicalPipeline(api_key)
+clinical_mutations = pipeline.fetch_real_mgmt_mutations()  # From cBioPortal
+regulatory_variants = pipeline.convert_to_regulatory_variants(clinical_mutations)
+analysis_results = pipeline.analyze_mgmt_regulatory_landscape()
+```
+- Fetches real mutations from cBioPortal glioblastoma studies
+- Converts clinical data to AlphaGenome-compatible format
+- Provides fallback to documented clinical variants
+- Correlates regulatory predictions with clinical outcomes
+
+### 2. **Regulatory Landscape Mapping**
 ```python
 landscape = pipeline.analyze_regulatory_landscape(
     gene="MYC",

@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.env
+.claude
 *.so
 .Python
 build/
@@ -96,3 +98,7 @@ Thumbs.db
 # Test outputs
 test_results/
 *.test.json
+
+frontend/node_modules/
+data/
+alphagenome_agent/data/

@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "testbase-research"
+version = "0.1.0"
+description = "AlphaGenome integration for regulatory genomics research"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "TestBase Research Team"},
+]
+dependencies = [
+    "pydantic>=2.0",
+    "typer>=0.9.0",
+    "jinja2>=3.1.0",
+    "matplotlib>=3.7.0",
+    "pandas>=2.0.0",
+    "requests>=2.31.0",
+    "tenacity>=8.2.0",
+    "biopython>=1.81",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.7.0",
+]
+
+[project.optional-dependencies]
+pdf = ["weasyprint>=60.0"]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+testbase = "src.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N"]
