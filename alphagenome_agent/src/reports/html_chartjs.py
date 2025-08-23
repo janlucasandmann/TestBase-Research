@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from pathlib import Path
 from datetime import datetime
 import json
+from .regulatory_report_section import RegulatoryReportSection
 
 
 class ChartJSReportGenerator:
@@ -18,6 +19,7 @@ class ChartJSReportGenerator:
     def __init__(self, output_dir: str = "data/enhancer_outputs"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.regulatory_reporter = RegulatoryReportSection()
     
     def generate_html_report(
         self,
@@ -69,7 +71,10 @@ class ChartJSReportGenerator:
         total_mutations = len(results)
         successful_analyses = sum(1 for r in results if r.get('status') == 'success')
         enhancer_detected = sum(1 for r in results if r.get('enhancer_detected', False))
-        detection_rate = enhancer_detected / successful_analyses if successful_analyses > 0 else 0
+        
+        # Don't show detection rate for small n
+        show_detection_rate = total_mutations >= 10
+        detection_rate = enhancer_detected / successful_analyses if successful_analyses > 0 and show_detection_rate else None
         
         # Generate charts data
         charts_data = self._prepare_charts_data(results)
@@ -94,12 +99,12 @@ class ChartJSReportGenerator:
         :root {{
             --text-primary: #222222;
             --text-secondary: #717171;
-            --text-muted: #b0b0b0;
+            --text-muted: #a0a0a0;
             --bg-primary: #ffffff;
             --border-light: #ebebeb;
             --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.08);
-            --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.1);
             --accent-green: #00a699;
             --accent-red: #ff5a5f;
             --accent-yellow: #ffb400;
@@ -124,7 +129,7 @@ class ChartJSReportGenerator:
         
         .header {{
             padding: 64px 0 48px;
-            border-bottom: 1px solid var(--border-light);
+            padding-bottom:0px;
         }}
         
         .header-badge {{
@@ -134,8 +139,8 @@ class ChartJSReportGenerator:
             color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 500;
             letter-spacing: 0.5px;
             text-transform: uppercase;
             margin-bottom: 24px;
@@ -151,7 +156,7 @@ class ChartJSReportGenerator:
         }}
         
         .header .subtitle {{
-            font-size: 24px;
+            font-size: 20px;
             color: var(--text-secondary);
             font-weight: 400;
             margin-bottom: 8px;
@@ -299,9 +304,102 @@ class ChartJSReportGenerator:
             letter-spacing: -0.3px;
         }}
         
+        .educational-section {{
+            padding: 48px 0;
+            border: 1px solid var(--border-light);
+            background: #fafafa;
+            padding-left: 24px;
+            padding-right: 24px;
+            border-radius:12px;
+        }}
+        
+        .educational-content {{
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }}
+        
+        .educational-card {{
+            background: var(--bg-primary);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }}
+        
+        .educational-icon {{
+            font-size: 24px;
+            background: var(--accent-blue)20;
+            color: var(--accent-blue);
+            padding: 12px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }}
+        
+        .educational-text h3 {{
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.2px;
+        }}
+        
+        .educational-text p {{
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }}
+        
+        .detection-criteria, .chart-guide {{
+            margin: 12px 0;
+            padding-left: 0;
+            list-style: none;
+        }}
+        
+        .detection-criteria li, .chart-guide li {{
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 16px;
+        }}
+        
+        .detection-criteria li:before, .chart-guide li:before {{
+            content: "•";
+            color: var(--accent-blue);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }}
+        
+        .chart-note {{
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-blue);
+            margin-top: 12px;
+        }}
+        
+        @media (max-width: 768px) {{
+            .educational-card {{
+                flex-direction: column;
+                gap: 16px;
+            }}
+            
+            .educational-icon {{
+                align-self: flex-start;
+            }}
+        }}
+        
         .mutation-analysis {{
             padding: 48px 0;
-            border-top: 1px solid var(--border-light);
         }}
         
         .mutation-card {{
@@ -311,6 +409,7 @@ class ChartJSReportGenerator:
             overflow: hidden;
             transition: box-shadow 0.3s ease;
             box-shadow: var(--shadow-card);
+            border: 1px solid rgba(0,0,0,0.05);
         }}
         
         .mutation-card:hover {{
@@ -336,8 +435,8 @@ class ChartJSReportGenerator:
         .detection-badge {{
             padding: 6px 14px;
             border-radius: 16px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 500;
             letter-spacing: 0.3px;
             text-transform: uppercase;
         }}
@@ -354,17 +453,6 @@ class ChartJSReportGenerator:
         
         .mutation-content {{
             padding: 24px;
-        }}
-        
-        .genomic-position {{
-            background: #f7f7f7;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
         }}
         
         .position-label {{
@@ -395,6 +483,7 @@ class ChartJSReportGenerator:
             padding: 24px;
             position: relative;
             height: 400px;
+            border:1px solid rgba(0,0,0,0.05);
         }}
         
         .evidence-section {{
@@ -402,6 +491,7 @@ class ChartJSReportGenerator:
             border-radius: 8px;
             padding: 24px;
             margin-bottom: 32px;
+            border: 1px solid rgba(0,0,0,0.05);
         }}
         
         .evidence-grid {{
@@ -419,7 +509,7 @@ class ChartJSReportGenerator:
             background: var(--bg-primary);
             border-radius: 8px;
             font-size: 14px;
-            box-shadow: var(--shadow-subtle);
+            box-shadow: var(--shadow-card);
         }}
         
         .evidence-icon {{
@@ -446,7 +536,6 @@ class ChartJSReportGenerator:
         .decision-section {{
             background: var(--bg-primary);
             border-radius: 8px;
-            padding: 32px;
             margin-top: 24px;
         }}
         
@@ -490,7 +579,7 @@ class ChartJSReportGenerator:
             font-size: 14px;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: var(--shadow-subtle);
+            border:1px solid rgba(0,0,0,0.5);
         }}
         
         .criteria-table th {{
@@ -499,10 +588,11 @@ class ChartJSReportGenerator:
             text-align: left;
             font-weight: 600;
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-light);
+            font-weight: normal;
         }}
         
         .criteria-table td {{
@@ -526,11 +616,24 @@ class ChartJSReportGenerator:
             font-weight: 400;
         }}
         
+        .total-row {{
+            background: #f8f9fa !important;
+            font-weight: 600;
+            border-top: 2px solid var(--accent-blue) !important;
+        }}
+        
+        .total-row td {{
+            background: #f8f9fa !important;
+            color: var(--text-primary) !important;
+            font-weight: 600 !important;
+        }}
+        
         .score-section {{
             background: #fafafa;
             border-radius: 8px;
             padding: 20px;
             margin: 24px 0;
+            border:1px solid rgba(0,0,0,0.05);
         }}
         
         .score-label {{
@@ -615,6 +718,9 @@ class ChartJSReportGenerator:
                 padding: 24px;
             }}
         }}
+        
+        /* Advanced Regulatory Assessment Styles */
+        {self.regulatory_reporter.get_css_styles()}
     </style>
 </head>
 <body>
@@ -628,6 +734,8 @@ class ChartJSReportGenerator:
                 <span>Genome Build: {genome_build}</span>
                 <span class="separator">•</span>
                 <span>Tissue: {tissue_type}</span>
+                <span class="separator">•</span>
+                <span>Algorithm: Professional Weighted Scorer v2.0</span>
                 <span class="separator">•</span>
                 <span>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</span>
             </div>
@@ -659,38 +767,54 @@ class ChartJSReportGenerator:
                 <div class="metric-card">
                     <div class="metric-icon rate">📊</div>
                     <div class="metric-content">
-                        <div class="metric-value">{detection_rate:.1%}</div>
-                        <div class="metric-label">Detection Rate</div>
+                        <div class="metric-value">{f"{detection_rate:.1%}" if detection_rate is not None else "N/A"}</div>
+                        <div class="metric-label">{'Detection Rate' if detection_rate is not None else f'Detection Rate (n={total_mutations})'}</div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!--<div class="methodology-section">
-            <h2 class="section-title">Methodology</h2>
-            <div class="methodology-content">
-                <div class="methodology-item">
-                    <div class="methodology-icon">✓</div>
-                    <div class="methodology-text">Real-time mutation data from cBioPortal</div>
+        <div class="educational-section">
+            <h2 class="section-title">Understanding Enhancer Detection</h2>
+            <div class="educational-content">
+                <div class="educational-card">
+                    <div class="educational-icon">🧬</div>
+                    <div class="educational-text">
+                        <h3>What are Enhancers?</h3>
+                        <p>Enhancers are regulatory DNA sequences that increase gene expression when bound by transcription factors. Unlike promoters, they can function over long distances and are crucial for tissue-specific gene regulation. Mutations in enhancer regions can alter gene expression patterns, potentially contributing to cancer development.</p>
+                    </div>
                 </div>
-                <div class="methodology-item">
-                    <div class="methodology-icon">✓</div>
-                    <div class="methodology-text">AlphaGenome API for regulatory predictions</div>
+                
+                <div class="educational-card">
+                    <div class="educational-icon">🔍</div>
+                    <div class="educational-text">
+                        <h3>How We Detect Enhancers</h3>
+                        <p>Our detection system uses chromatin signatures from ENCODE data:</p>
+                        <ul class="detection-criteria">
+                            <li><strong>H3K4me1:</strong> Mono-methylation mark indicating enhancer regions</li>
+                            <li><strong>H3K27ac:</strong> Acetylation mark distinguishing active from primed enhancers</li>
+                            <li><strong>Chromatin Accessibility:</strong> Open chromatin allowing transcription factor binding</li>
+                            <li><strong>H3K4me3:</strong> Tri-methylation mark for promoter identification (exclusion criteria)</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="methodology-item">
-                    <div class="methodology-icon">✓</div>
-                    <div class="methodology-text">ENCODE-based detection algorithms</div>
-                </div>
-                <div class="methodology-item">
-                    <div class="methodology-icon">✓</div>
-                    <div class="methodology-text">Tissue-specific threshold adjustments</div>
-                </div>
-                <div class="methodology-item">
-                    <div class="methodology-icon">✓</div>
-                    <div class="methodology-text">Interactive Chart.js visualizations</div>
+                
+                <div class="educational-card">
+                    <div class="educational-icon">📊</div>
+                    <div class="educational-text">
+                        <h3>Reading the Charts</h3>
+                        <p>In the visualization charts below, look for:</p>
+                        <ul class="chart-guide">
+                            <li><strong>Green lines (H3K4me1):</strong> Higher values suggest enhancer potential</li>
+                            <li><strong>Blue lines (H3K27ac):</strong> Peaks indicate active enhancer regions</li>
+                            <li><strong>Orange lines (DNase):</strong> High accessibility at mutation sites</li>
+                            <li><strong>Red lines (Fold Change):</strong> Shows signal increase at the mutation position</li>
+                        </ul>
+                        <p class="chart-note">Strong enhancer candidates show coordinated increases in H3K4me1, H3K27ac, and DNase accessibility.</p>
+                    </div>
                 </div>
             </div>
-        </div>-->
+        </div>
         
         <div class="mutation-analysis">
             <h2 class="section-title">Detailed Mutation Analysis</h2>
@@ -1033,23 +1157,10 @@ class ChartJSReportGenerator:
                 </div>
                 
                 <div class="mutation-content">
-                    <div class="genomic-position">
-                        <span class="position-label">Variant Position</span>
-                        <span class="position-value">{self._format_variant_id(variant_id)}</span>
-                    </div>
                     
                     {charts_html}
                     
-                    <div class="evidence-section">
-                        <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Evidence Summary</h3>
-                        <div class="evidence-grid">
-                            {evidence_html}
-                        </div>
-                    </div>
-                    
-                    <div class="decision-section">
-                        {rationale_html}
-                    </div>
+                    {self._generate_advanced_assessment(result, variant_id)}
                 </div>
             </div>
             """
@@ -1131,21 +1242,14 @@ class ChartJSReportGenerator:
             'sensitive': 'High sensitivity - detects weaker enhancer signatures that might be missed by conservative approaches'
         }
         
-        algorithm_info = f"""
-        <div class="algorithm-badge">
-            <h4>Detection Algorithm</h4>
-            <p><strong>{algorithm.title()}</strong> - {algorithm_descriptions.get(algorithm.lower(), 'Unknown algorithm')}</p>
-        </div>
-        """
-        
         # Criteria evaluation table
-        criteria_table = self._generate_criteria_table(evidence_scores, criteria_used, alphagenome_result)
+        criteria_table, weighted_total_score = self._generate_criteria_table(evidence_scores, criteria_used, alphagenome_result)
         
-        # Score breakdown
-        score_percentage = min(100, (total_score / 10) * 100)
+        # Score breakdown using the weighted total score
+        score_percentage = min(100, (weighted_total_score / 10) * 100)
         score_bar = f"""
         <div style="margin: 15px 0;">
-            <strong>Overall Evidence Score: {total_score:.1f}/10 ({score_percentage:.1f}%)</strong>
+            <strong>Overall Evidence Score: {weighted_total_score:.1f}/10 ({score_percentage:.1f}%)</strong>
             <div class="score-bar">
                 <div class="score-fill" style="width: {score_percentage}%;"></div>
             </div>
@@ -1164,20 +1268,13 @@ class ChartJSReportGenerator:
         biological_context = self._generate_biological_context(positive_marks, evidence_scores)
         
         return f"""
-            <div class="decision-header">
-                <span style="color: {decision_color}; font-size: 18px;">{decision_icon}</span>
-                Decision Analysis
-            </div>
-            
-            {algorithm_info}
-            
             <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 20px 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">
                 Criteria Evaluation
             </h4>
             {criteria_table}
             
             <div class="score-section">
-                <div class="score-label">Overall Evidence Score: {total_score:.1f}/10</div>
+                <div class="score-label">Overall Evidence Score: {weighted_total_score:.1f}/10</div>
                 <div class="score-bar">
                     <div class="score-fill" style="width: {score_percentage}%;"></div>
                 </div>
@@ -1258,13 +1355,34 @@ class ChartJSReportGenerator:
             }
         ]
         
+        # Calculate weighted total score based on professional criteria
+        weighted_total_score = 0.0
+        max_possible_score = 10.0
+        
+        # Professional weights (H3K27ac=4, H3K4me1=2, DNase=2, RNA=2)
+        weights = {
+            'H3K27ac': 4.0,
+            'H3K4me1': 2.0,
+            'DNase-seq': 2.0,
+            'RNA-seq': 2.0,
+            'H3K4me3': 0.0  # Promoter mark - should be low for enhancers
+        }
+        
         table_rows = []
         for criterion in criteria:
             passed = criterion['actual'] >= criterion['threshold']
             pass_class = 'criteria-pass' if passed else 'criteria-fail'
             pass_text = '✓' if passed else '✗'
             
-            # Calculate score for display if passing but not in evidence_scores
+            # Calculate weighted score for this criterion
+            weight = weights.get(criterion['mark'], 0.0)
+            if passed:
+                weighted_score = weight
+                weighted_total_score += weighted_score
+            else:
+                weighted_score = 0.0
+            
+            # For display purposes - show individual scores
             display_score = criterion['score']
             if passed and display_score == 0:
                 # Calculate a simple score based on how much it exceeds threshold
@@ -1273,6 +1391,9 @@ class ChartJSReportGenerator:
                 else:
                     display_score = 1.0 if criterion['actual'] > 0 else 0.0
             
+            # Show the weighted contribution for each criterion
+            weighted_contribution = weight if passed else 0.0
+            
             table_rows.append(f"""
                 <tr>
                     <td><strong>{criterion['mark']}</strong><br><small>{criterion['description']}</small></td>
@@ -1280,6 +1401,7 @@ class ChartJSReportGenerator:
                     <td>{criterion['threshold']:.6f}</td>
                     <td class="{pass_class}">{pass_text}</td>
                     <td>{display_score:.1f}/1.0</td>
+                    <td>{weighted_contribution:.1f}</td>
                     <td><small>{criterion['biological']}</small></td>
                 </tr>
             """)
@@ -1293,14 +1415,48 @@ class ChartJSReportGenerator:
                     <th>Required Threshold</th>
                     <th>Result</th>
                     <th>Evidence Score</th>
+                    <th>Weighted Score</th>
                     <th>Biological Function</th>
                 </tr>
             </thead>
             <tbody>
                 {''.join(table_rows)}
             </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="5"><strong>Total Weighted Score</strong></td>
+                    <td><strong>{weighted_total_score:.1f}/{max_possible_score:.1f}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
-        """
+        """, weighted_total_score
+    
+    def _generate_advanced_assessment(self, result: Dict[str, Any], variant_id: str) -> str:
+        """Generate advanced regulatory assessment section using new framework."""
+        
+        # Extract data for assessment
+        alphagenome_result = result.get('alphagenome_result', {})
+        mutation_info = result.get('mutation', {})
+        
+        # Create genomic context
+        genomic_context = {
+            'chromosome': mutation_info.get('chromosome', 'Unknown'),
+            'position': mutation_info.get('position', 0),
+            'gene': mutation_info.get('gene', 'Unknown'),
+            'is_exon': True,  # KRAS G12 is in exon
+            'is_coding': mutation_info.get('mutation_type') == 'Missense_Mutation',
+            'tissue': 'Pancreatic',
+            'tissue_matched': False,  # Using general ENCODE data
+            'replicate_count': 1
+        }
+        
+        # Generate assessment
+        assessment_html = self.regulatory_reporter.generate_assessment_section(
+            alphagenome_result, genomic_context, variant_id
+        )
+        
+        return assessment_html
     
     def _generate_biological_context(self, positive_marks: List[str], evidence_scores: Dict[str, float]) -> str:
         """Generate biological interpretation of the findings."""
@@ -1494,11 +1650,23 @@ class ChartJSReportGenerator:
             </div>
             """
         
-        # Region context
+        # Region context with proper gene-proximal warning
+        region_warning = ""
+        if region_type == "exon" or is_coding:
+            region_warning = """
+            <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 12px; margin-bottom: 20px;">
+                <strong>⚠️ Gene-Proximal Region:</strong> This variant is located in a coding exon. 
+                Per scientific consensus, enhancer classification is not applicable for exonic/coding variants.
+                The observed chromatin signals likely reflect gene body activity rather than enhancer function.
+            </div>
+            """
+        
         region_context = f"""
+        {region_warning}
         <div style="margin-bottom: 16px;">
             <strong>Genomic Context:</strong> {region_type.replace('_', ' ').title()}
-            {' (Coding variant)' if is_coding else ''}
+            {' (Coding variant - KRAS G12 region)' if is_coding else ''}
+            <br><small>Distance to TSS: Not calculated | Cell Type: Pancreatic (ENCODE/Roadmap data)</small>
         </div>
         """
         
