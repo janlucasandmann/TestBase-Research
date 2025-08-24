@@ -39,6 +39,7 @@ class RegulatoryReportSection:
         )
         
         # Generate HTML sections
+        gateway_section = self._generate_gateway_decision_section(assessment, genomic_context)
         classification_section = self._generate_classification_section(assessment)
         evidence_section = self._generate_evidence_section(assessment)
         interpretation_section = self._generate_interpretation_section(assessment)
@@ -52,6 +53,7 @@ class RegulatoryReportSection:
                 Biologically-informed analysis replacing arbitrary numeric scores
             </p>
             
+            {gateway_section}
             {classification_section}
             {evidence_section}
             {interpretation_section}
@@ -59,6 +61,70 @@ class RegulatoryReportSection:
             {quality_section}
         </div>
         """
+    
+    def _generate_gateway_decision_section(self, assessment, genomic_context: Dict[str, Any]) -> str:
+        """Generate gateway decision section that precedes scoring."""
+        
+        # Determine if this is a gene-proximal region
+        is_gene_proximal = (
+            genomic_context.get('is_exon', False) or 
+            genomic_context.get('is_coding', False) or
+            genomic_context.get('distance_to_tss', float('inf')) < 2000
+        )
+        
+        if is_gene_proximal:
+            return f"""
+            <div class="gateway-decision">
+                <div class="gateway-header">
+                    <span class="gateway-icon">🚦</span>
+                    <h3>Gateway Decision</h3>
+                </div>
+                <div class="gateway-content">
+                    <div class="gateway-badge not-applicable">
+                        <span class="badge-icon">🔴</span>
+                        <span class="badge-text">Not Applicable - Gene Proximal Region</span>
+                    </div>
+                    <div class="gateway-explanation">
+                        <p><strong>Decision Rationale:</strong></p>
+                        <ul>
+                            <li>Location: {genomic_context.get('region_type', 'Coding region')}</li>
+                            <li>Gene: {genomic_context.get('gene', 'Unknown')} {f"Exon {genomic_context.get('exon_number')}" if genomic_context.get('exon_number') else ""}</li>
+                            <li>Assessment: Enhancer detection not applicable for gene-proximal variants</li>
+                        </ul>
+                        <p class="gateway-note">
+                            <strong>Note:</strong> Chromatin signals shown below reflect gene body activity 
+                            and are <em>not counted</em> toward enhancer classification. For coding variants, 
+                            focus on protein-level effects rather than regulatory interpretation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            """
+        else:
+            # Non-gene-proximal: proceed with standard assessment
+            data_quality = "High" if genomic_context.get('tissue_matched', False) else "Moderate"
+            return f"""
+            <div class="gateway-decision">
+                <div class="gateway-header">
+                    <span class="gateway-icon">🚦</span>
+                    <h3>Gateway Decision</h3>
+                </div>
+                <div class="gateway-content">
+                    <div class="gateway-badge proceed">
+                        <span class="badge-icon">🟢</span>
+                        <span class="badge-text">Proceed - Intergenic/Intronic Region</span>
+                    </div>
+                    <div class="gateway-explanation">
+                        <p><strong>Assessment Criteria:</strong></p>
+                        <ul>
+                            <li>Location suitable for enhancer assessment</li>
+                            <li>Data quality: {data_quality}</li>
+                            <li>Chromatin marks will be evaluated for regulatory potential</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            """
     
     def _generate_classification_section(self, assessment) -> str:
         """Generate regulatory classification section."""
@@ -303,6 +369,77 @@ class RegulatoryReportSection:
         """Return CSS styles for the regulatory assessment section."""
         
         return """
+        .gateway-decision {
+            margin-bottom: 32px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .gateway-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .gateway-icon {
+            font-size: 20px;
+        }
+        
+        .gateway-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .gateway-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .gateway-badge.not-applicable {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+        
+        .gateway-badge.proceed {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        
+        .gateway-explanation {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .gateway-explanation ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .gateway-explanation li {
+            margin-bottom: 4px;
+        }
+        
+        .gateway-note {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
         .regulatory-assessment {
             margin: 32px 0;
             padding: 24px;

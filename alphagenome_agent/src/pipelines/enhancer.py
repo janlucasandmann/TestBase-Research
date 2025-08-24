@@ -291,7 +291,8 @@ class EnhancerDetectionPipeline(BasePipeline):
                         "variant_id": result.get("variant", "Unknown"),
                         "enhancer_detected": result.get("enhancer_analysis", {}).get("is_enhancer_like", False),
                         "detection_result": result.get("enhancer_analysis", {}),
-                        "alphagenome_result": result.get("alphagenome_result", {})
+                        "alphagenome_result": result.get("alphagenome_result", {}),
+                        "mutation": result.get("mutation", {})  # Pass mutation info for genomic context
                     }
                     prepared_results.append(prepared_result)
             

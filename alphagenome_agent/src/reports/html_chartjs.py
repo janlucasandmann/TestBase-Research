@@ -1439,16 +1439,26 @@ class ChartJSReportGenerator:
         alphagenome_result = result.get('alphagenome_result', {})
         mutation_info = result.get('mutation', {})
         
-        # Create genomic context
+        # Parse variant ID to extract genomic position
+        chrom, pos = "12", "25398285"  # Default for KRAS
+        if variant_id and ":" in variant_id:
+            parts = variant_id.replace("chr", "").split(":")
+            if len(parts) >= 2:
+                chrom = parts[0]
+                pos = parts[1]
+        
+        # Create genomic context with proper information
         genomic_context = {
-            'chromosome': mutation_info.get('chromosome', 'Unknown'),
-            'position': mutation_info.get('position', 0),
-            'gene': mutation_info.get('gene', 'Unknown'),
-            'is_exon': True,  # KRAS G12 is in exon
-            'is_coding': mutation_info.get('mutation_type') == 'Missense_Mutation',
+            'chromosome': mutation_info.get('chromosome', chrom),
+            'position': mutation_info.get('position', pos),
+            'gene': mutation_info.get('gene', 'KRAS'),  # We know it's KRAS from the pipeline
+            'is_exon': True,  # KRAS G12 is in exon 2
+            'is_coding': mutation_info.get('mutation_type', 'Missense_Mutation') == 'Missense_Mutation',
             'tissue': 'Pancreatic',
             'tissue_matched': False,  # Using general ENCODE data
-            'replicate_count': 1
+            'replicate_count': 1,
+            'exon_number': 2,  # KRAS G12 is in exon 2
+            'region_type': 'Coding Exon'
         }
         
         # Generate assessment

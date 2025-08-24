@@ -581,14 +581,21 @@ class RegulatoryAssessmentEngine:
         """Format genomic context information."""
         parts = []
         
-        if genomic_context.get('chromosome'):
-            parts.append(f"Chromosome: {genomic_context['chromosome']}")
+        # Format chromosome properly
+        chrom = genomic_context.get('chromosome', '')
+        if chrom and chrom != 'Unknown':
+            if not chrom.startswith('chr'):
+                chrom = f"chr{chrom}"
+            parts.append(f"Chromosome: {chrom}")
         
         if genomic_context.get('position'):
-            parts.append(f"Position: {genomic_context['position']}")
+            parts.append(f"Position: {genomic_context['position']:,}")  # Add commas for readability
         
         if genomic_context.get('gene'):
-            parts.append(f"Gene: {genomic_context['gene']}")
+            gene = genomic_context['gene']
+            if genomic_context.get('exon_number'):
+                gene += f" (Exon {genomic_context['exon_number']})"
+            parts.append(f"Gene: {gene}")
         
         if genomic_context.get('region_type'):
             parts.append(f"Region: {genomic_context['region_type']}")
