@@ -766,6 +766,176 @@ class ChartJSReportGenerator:
             }}
         }}
         
+        /* Signal Profile and Probability Chart Styles */
+        .probability-chart-section, .signal-profile-section {{
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }}
+        
+        .signal-profile-section.exploratory {{
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            opacity: 0.85;
+        }}
+        
+        .not-evaluated-badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 12px;
+        }}
+        
+        .signal-chart-container.grayed-out {{
+            opacity: 0.6;
+            position: relative;
+        }}
+        
+        .signal-chart-container.grayed-out::after {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+            pointer-events: none;
+        }}
+        
+        .probability-chart-container, .signal-chart-container {{
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }}
+        
+        .section-header h3 {{
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .section-description {{
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }}
+        
+        .explanation-toggle {{
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+        }}
+        
+        .explanation-toggle:hover {{
+            background: #e9ecef;
+        }}
+        
+        .explanation-content {{
+            margin-top: 16px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-blue);
+        }}
+        
+        .explanation-section {{
+            margin-bottom: 20px;
+        }}
+        
+        .explanation-section:last-child {{
+            margin-bottom: 0;
+        }}
+        
+        .explanation-section h4 {{
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }}
+        
+        .signal-list {{
+            margin: 12px 0;
+        }}
+        
+        .signal-item {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }}
+        
+        .signal-badge {{
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 12px;
+            min-width: 80px;
+            text-align: center;
+        }}
+        
+        .signal-badge.positive {{
+            background: #d1fae5;
+            color: #065f46;
+        }}
+        
+        .signal-badge.negative {{
+            background: #fee2e2;
+            color: #dc2626;
+        }}
+        
+        .signal-badge.neutral {{
+            background: #f3f4f6;
+            color: #374151;
+        }}
+        
+        .signal-desc {{
+            font-size: 13px;
+            color: var(--text-secondary);
+        }}
+        
+        .method-note {{
+            margin-top: 12px;
+            padding: 12px;
+            background: #eff6ff;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+        }}
+        
+        .limitation-box {{
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 12px 0;
+        }}
+        
+        .limitation-box ul {{
+            margin: 0;
+            padding-left: 20px;
+        }}
+        
+        .limitation-box li {{
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+        }}
+        
         /* Signal Profile Section Styles */
         .signal-profile-section.exploratory {{
             background: #f9fafb;
@@ -1489,7 +1659,7 @@ class ChartJSReportGenerator:
             # Generate genomic window information
             genomic_info_html = self._generate_genomic_info_html(result)
             
-            # Generate enhancer probability chart if available
+            # Generate enhancer probability chart if available (adapts based on genomic context)
             prob_chart_html = self._generate_enhancer_probability_chart(safe_id, result)
             
             card_html = f"""
@@ -1508,12 +1678,6 @@ class ChartJSReportGenerator:
                     {charts_html}
                     
                     {self._generate_advanced_assessment(result, variant_id)}
-                    
-                    {self._generate_hgvs_notation_section(result)}
-                    
-                    {self._generate_genome_browser_panel(result)}
-                    
-                    {self._generate_data_provenance_section()}
                 </div>
             </div>
             """
@@ -1580,6 +1744,7 @@ class ChartJSReportGenerator:
                     </div>
                 </div>
             </div>
+        </div>
         """
         
         if is_gene_proximal:
@@ -1603,146 +1768,100 @@ class ChartJSReportGenerator:
                         ℹ️ Understanding This Profile <span class="toggle-icon">▼</span>
                     </button>
                     {explanation_html}
-                </div>
             </div>
             """
         else:
             # Show standard enhancer probability for distal regions
             return f"""
-        <div class="probability-chart-section">
-            <div class="section-header">
-                <h3>📈 Enhancer Probability Analysis</h3>
-                <p class="section-description">
-                    This chart estimates the probability of enhancer activity across the genomic region 
-                    by combining multiple biological signals using scientifically validated methods.
-                </p>
-            </div>
-            <div class="probability-chart-container">
-                <canvas id="prob-chart-{safe_id}"></canvas>
-            </div>
-            
-            <div class="probability-explanation">
-                <button class="explanation-toggle" onclick="toggleExplanation('{safe_id}')">
-                    ℹ️ Understanding This Chart <span class="toggle-icon">▼</span>
-                </button>
+            <div class="probability-chart-section">
+                <div class="section-header">
+                    <h3>📈 Enhancer Probability Analysis</h3>
+                    <p class="section-description">
+                        This chart estimates the probability of enhancer activity across the genomic region 
+                        by combining multiple biological signals using ensemble methods.
+                    </p>
+                </div>
+                <div class="probability-chart-container">
+                    <canvas id="prob-chart-{safe_id}"></canvas>
+                </div>
                 
-                <div id="explanation-{safe_id}" class="explanation-content" style="display: none;">
-                    <div class="explanation-section">
-                        <h4>🔬 How We Calculate Enhancer Probability</h4>
-                        <p>This chart combines multiple biological signals from the AlphaGenome model to estimate where enhancers might be located:</p>
-                        
-                        <div class="signal-list">
-                            <div class="signal-item">
-                                <span class="signal-badge positive">H3K27ac (42%)</span>
-                                <span class="signal-desc">Active enhancer mark - strongest indicator of active regulatory regions</span>
-                            </div>
-                            <div class="signal-item">
-                                <span class="signal-badge positive">H3K4me1 (28%)</span>
-                                <span class="signal-desc">General enhancer mark - found at both active and poised enhancers</span>
-                            </div>
-                            <div class="signal-item">
-                                <span class="signal-badge positive">DNase (20%)</span>
-                                <span class="signal-desc">Open chromatin - indicates DNA is accessible for protein binding</span>
-                            </div>
-                            <div class="signal-item">
-                                <span class="signal-badge negative">H3K4me3 (-35%)</span>
-                                <span class="signal-desc">Promoter mark - high levels indicate promoters, not enhancers</span>
-                            </div>
-                            <div class="signal-item">
-                                <span class="signal-badge neutral">RNA (5%)</span>
-                                <span class="signal-desc">Transcription - may indicate enhancer RNA production</span>
-                            </div>
-                        </div>
-                        
-                        <p class="method-note">
-                            <strong>Method:</strong> We use the ENCODE consortium's empirically validated weights, 
-                            derived from analyzing thousands of confirmed enhancers across multiple cell types.
-                        </p>
-                    </div>
-                    
-                    <div class="explanation-section">
-                        <h4>📊 What the Chart Shows</h4>
-                        <ul class="explanation-list">
-                            <li><strong>Blue line (Reference):</strong> Predicted enhancer probability for the normal DNA sequence</li>
-                            <li><strong>Orange line (Mutant):</strong> Predicted probability after the mutation</li>
-                            <li><strong>Shaded areas:</strong> Confidence intervals showing prediction uncertainty</li>
-                            <li><strong>Red vertical line:</strong> The exact location of the mutation</li>
-                            <li><strong>Y-axis (0-100%):</strong> Probability that a position is an enhancer</li>
-                            <li><strong>X-axis:</strong> Position along the DNA sequence in base pairs</li>
-                        </ul>
-                        
-                        <div class="interpretation-guide">
-                            <h5>How to Interpret:</h5>
-                            <ul>
-                                <li>🟢 <strong>High probability (>70%):</strong> Strong evidence for enhancer activity</li>
-                                <li>🟡 <strong>Medium probability (30-70%):</strong> Possible enhancer or weak activity</li>
-                                <li>🔴 <strong>Low probability (<30%):</strong> Unlikely to be an enhancer</li>
-                                <li>📈 <strong>If orange > blue:</strong> Mutation may create or strengthen enhancer</li>
-                                <li>📉 <strong>If blue > orange:</strong> Mutation may disrupt enhancer</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="explanation-section">
-                        <h4>⚠️ Important Limitations</h4>
-                        <div class="limitation-box">
-                            <ul>
-                                <li><strong>Cell-type specific:</strong> Enhancers are active in specific cell types. 
-                                    This prediction uses the tissue type specified but may not capture all cell-type variation.</li>
-                                <li><strong>No DNA sequence analysis:</strong> We only analyze epigenetic marks, not the underlying 
-                                    DNA sequence or transcription factor binding sites.</li>
-                                <li><strong>No 3D interactions:</strong> We don't consider how DNA folds in 3D space, 
-                                    which determines which genes an enhancer can regulate.</li>
-                                <li><strong>Statistical prediction:</strong> These are probabilities, not definitive classifications. 
-                                    Experimental validation would be needed for certainty.</li>
-                                <li><strong>Resolution:</strong> The analysis is at base-pair resolution but smoothed over 
-                                    5bp windows for noise reduction.</li>
-                            </ul>
-                        </div>
-                        
-                        <p class="disclaimer">
-                            <em>This analysis is for research purposes only and should not be used for clinical decisions 
-                            without additional validation.</em>
-                        </p>
-                    </div>
+                <div class="probability-explanation">
+                    <button class="explanation-toggle" onclick="toggleExplanation('{safe_id}')">
+                        ℹ️ Understanding This Chart <span class="toggle-icon">▼</span>
+                    </button>
+                    {explanation_html}
+            </div>
+            """
+    
+    def _generate_genomic_info_html(self, result: Dict[str, Any]) -> str:
+        """Generate genomic window and data information section."""
+        alphagenome_result = result.get('alphagenome_result', {})
+        raw_data = alphagenome_result.get('raw', {})
+        
+        # Calculate genomic window size and data points
+        total_base_pairs = 0
+        if 'reference' in raw_data:
+            ref_outputs = raw_data['reference']
+            if hasattr(ref_outputs, 'dnase') and ref_outputs.dnase is not None:
+                total_base_pairs = len(ref_outputs.dnase.values.flatten())
+        
+        # Get the genomic interval
+        interval = alphagenome_result.get('genomic_interval', 'Unknown region')
+        
+        genomic_info_html = f"""
+        <div class="genomic-info-section">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Genomic Window</div>
+                    <div class="info-value">{interval}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Analysis Resolution</div>
+                    <div class="info-value">{total_base_pairs:,} base pairs</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Data Source</div>
+                    <div class="info-value">AlphaGenome predictions</div>
                 </div>
             </div>
         </div>
-        <style>
-            .probability-chart-section {{
-                background: #ffffff;
-                border-radius: 12px;
-                padding: 24px;
-                margin-bottom: 32px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            }}
-            
-            .section-header {{
-                margin-bottom: 20px;
-            }}
-            
-            .section-header h3 {{
-                margin: 0 0 8px 0;
-                color: #222222;
-                font-size: 18px;
-                font-weight: 600;
-            }}
-            
-            .section-description {{
-                margin: 0;
-                color: #717171;
-                font-size: 14px;
-                line-height: 1.6;
-            }}
-            
-            .probability-chart-container {{
-                position: relative;
-                height: 400px;
-                background: #fafafa;
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 20px;
-            }}
+        """
+        
+        return genomic_info_html
+    
+    def _generate_evidence_html(self, prof_detection: Dict[str, Any]) -> str:
+        """Generate HTML for evidence presentation."""
+        if not prof_detection:
+            return "<div class='evidence-section'><p>No evidence data available.</p></div>"
+        
+        # Extract key evidence information
+        evidence_scores = prof_detection.get('evidence_scores', {})
+        criteria_met = prof_detection.get('criteria_met', [])
+        decision = prof_detection.get('enhancer_detected', False)
+        
+        # Create evidence summary
+        evidence_html = f"""
+        <div class="evidence-section">
+            <h3>Evidence Summary</h3>
+            <div class="evidence-grid">
+                <div class="evidence-item">
+                    <div class="evidence-label">Decision</div>
+                    <div class="evidence-value">{'Enhancer Detected' if decision else 'No Enhancer'}</div>
+                </div>
+                <div class="evidence-item">
+                    <div class="evidence-label">Criteria Met</div>
+                    <div class="evidence-value">{len(criteria_met)} criteria</div>
+                </div>
+                <div class="evidence-item">
+                    <div class="evidence-label">Score Summary</div>
+                    <div class="evidence-value">{len(evidence_scores)} signals analyzed</div>
+                </div>
+            </div>
+        </div>
+        """
+        
+        return evidence_html
+    
             
             .explanation-toggle {{
                 background: #f8f9fa;
@@ -2534,8 +2653,8 @@ class ChartJSReportGenerator:
         region_context = f"""
         {region_warning}
         <div style="margin-bottom: 16px;">
-            <strong>Genomic Context:</strong> {f'{scientific_detection.get("gene", "KRAS")}, {region_type.replace("_", " ").title()}' if region_type.lower() in ["exon", "coding_exon"] else region_type.replace('_', ' ').title()}
-            {f' (Coding variant)' if is_coding else ''}
+            <strong>Genomic Context:</strong> {region_type.replace('_', ' ').title()}
+            {' (Coding variant - KRAS G12 region)' if is_coding else ''}
             <br><small>Distance to TSS: Not calculated | Cell Type: Pancreatic (ENCODE/Roadmap data)</small>
         </div>
         """
@@ -2595,650 +2714,6 @@ class ChartJSReportGenerator:
             {scientific_note}
         </div>
         """
-    
-    def _generate_data_provenance_section(self) -> str:
-        """Generate data provenance and reproducibility section."""
-        return """
-        <div class="data-provenance-section">
-            <h3>📊 Data Provenance & Reproducibility</h3>
-            
-            <div class="provenance-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data Type</th>
-                            <th>Source</th>
-                            <th>Version/Accession</th>
-                            <th>Quality Metrics</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Mutation Data</strong></td>
-                            <td>cBioPortal</td>
-                            <td>API v2.0</td>
-                            <td>Real-time query</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Epigenomic Predictions</strong></td>
-                            <td>AlphaGenome</td>
-                            <td>Model v1.0</td>
-                            <td>Base-pair resolution</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Training Data</strong></td>
-                            <td>ENCODE Project</td>
-                            <td>Multiple datasets (see below)</td>
-                            <td>QC passed samples only</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Histone ChIP-seq</strong></td>
-                            <td>ENCODE/Roadmap</td>
-                            <td>H3K27ac, H3K4me1, H3K4me3</td>
-                            <td>IDR < 0.05</td>
-                        </tr>
-                        <tr>
-                            <td><strong>DNase-seq</strong></td>
-                            <td>ENCODE</td>
-                            <td>Pancreatic tissue (when available)</td>
-                            <td>FRiP > 0.2</td>
-                        </tr>
-                        <tr>
-                            <td><strong>RNA-seq</strong></td>
-                            <td>ENCODE/GTEx</td>
-                            <td>Tissue-matched when possible</td>
-                            <td>RIN > 6.0</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="reproducibility-note">
-                <h4>⚠️ Important Notes on Reproducibility</h4>
-                <ul>
-                    <li><strong>AlphaGenome Model:</strong> Predictions are based on deep learning models trained on ENCODE data. 
-                        The exact training datasets and parameters are proprietary to DeepMind.</li>
-                    <li><strong>Tissue Specificity:</strong> When tissue-matched data is unavailable, the model uses 
-                        the closest available tissue type based on ontology mapping.</li>
-                    <li><strong>Validation:</strong> All predictions require experimental validation. These are statistical 
-                        predictions, not definitive functional annotations.</li>
-                    <li><strong>Version Control:</strong> Results may vary with different AlphaGenome model versions. 
-                        This report used the latest available version at time of generation.</li>
-                </ul>
-            </div>
-            
-            <style>
-                .data-provenance-section {
-                    margin-top: 30px;
-                    padding: 20px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    border: 1px solid #dee2e6;
-                }
-                
-                .data-provenance-section h3 {
-                    color: #2c3e50;
-                    margin-bottom: 20px;
-                    font-size: 18px;
-                }
-                
-                .provenance-table {
-                    overflow-x: auto;
-                    margin-bottom: 20px;
-                }
-                
-                .provenance-table table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background: white;
-                    border-radius: 4px;
-                    overflow: hidden;
-                }
-                
-                .provenance-table th {
-                    background: #e9ecef;
-                    padding: 12px;
-                    text-align: left;
-                    font-weight: 600;
-                    color: #495057;
-                    border-bottom: 2px solid #dee2e6;
-                }
-                
-                .provenance-table td {
-                    padding: 10px 12px;
-                    border-bottom: 1px solid #dee2e6;
-                    color: #495057;
-                }
-                
-                .provenance-table tr:last-child td {
-                    border-bottom: none;
-                }
-                
-                .reproducibility-note {
-                    background: #fff3cd;
-                    border: 1px solid #ffc107;
-                    border-radius: 4px;
-                    padding: 15px;
-                    margin-top: 20px;
-                }
-                
-                .reproducibility-note h4 {
-                    color: #856404;
-                    margin-bottom: 10px;
-                    font-size: 14px;
-                }
-                
-                .reproducibility-note ul {
-                    margin: 0;
-                    padding-left: 20px;
-                    color: #856404;
-                }
-                
-                .reproducibility-note li {
-                    margin-bottom: 8px;
-                    font-size: 13px;
-                    line-height: 1.5;
-                }
-            </style>
-        </div>
-        """
-    
-    def _generate_genome_browser_panel(self, result: Dict[str, Any]) -> str:
-        """Generate genome browser visualization panel with tracks."""
-        variant_id = result.get('variant_id', 'Unknown')
-        alphagenome_result = result.get('alphagenome_result', {})
-        summary = alphagenome_result.get('summary', {})
-        
-        # Parse variant to get position
-        chrom, pos = 'chr12', '25398284'
-        if ':' in variant_id:
-            parts = variant_id.split(':')
-            if len(parts) >= 2:
-                chrom = parts[0]
-                pos = parts[1]
-        
-        # Generate UCSC browser link
-        start = max(0, int(pos) - 5000)
-        end = int(pos) + 5000
-        ucsc_url = f"https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position={chrom}:{start}-{end}&highlight={chrom}:{pos}-{pos}"
-        
-        return f"""
-        <div class="genome-browser-section">
-            <h3>🧬 Genome Browser Tracks</h3>
-            
-            <div class="browser-panel">
-                <div class="browser-header">
-                    <span class="browser-position">{chrom}:{pos}</span>
-                    <a href="{ucsc_url}" target="_blank" class="browser-link">
-                        View in UCSC Browser →
-                    </a>
-                </div>
-                
-                <div class="tracks-container">
-                    {self._generate_track_visualization('DNase-seq', summary.get('dnase', {}), '#00A699')}
-                    {self._generate_track_visualization('H3K27ac', summary.get('chip_histone', {}).get('marks', {}).get('H3K27ac', {}), '#FF6B6B')}
-                    {self._generate_track_visualization('H3K4me1', summary.get('chip_histone', {}).get('marks', {}).get('H3K4me1', {}), '#4ECDC4')}
-                    {self._generate_track_visualization('H3K4me3', summary.get('chip_histone', {}).get('marks', {}).get('H3K4me3', {}), '#45B7D1')}
-                    {self._generate_track_visualization('RNA-seq', summary.get('rna_seq', {}), '#96CEB4')}
-                </div>
-                
-                <div class="browser-legend">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #0066CC;"></span>
-                        <span>Reference</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #FF9500;"></span>
-                        <span>Mutant</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-line" style="border-color: #DC3545;"></span>
-                        <span>Mutation Position</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="track-interpretation">
-                <h4>Track Interpretation</h4>
-                <ul>
-                    <li><strong>DNase-seq:</strong> Shows chromatin accessibility. Peaks indicate open chromatin regions.</li>
-                    <li><strong>H3K27ac:</strong> Active enhancer mark. Strong signal suggests active regulatory elements.</li>
-                    <li><strong>H3K4me1:</strong> Enhancer mark. Enrichment indicates potential enhancer regions.</li>
-                    <li><strong>H3K4me3:</strong> Promoter mark. Should be low in true enhancers.</li>
-                    <li><strong>RNA-seq:</strong> Transcriptional activity. eRNA production indicates active enhancers.</li>
-                </ul>
-            </div>
-            
-            <style>
-                .genome-browser-section {{
-                    margin-top: 30px;
-                    padding: 20px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    border: 1px solid #dee2e6;
-                }}
-                
-                .browser-panel {{
-                    background: white;
-                    border: 1px solid #dee2e6;
-                    border-radius: 8px;
-                    padding: 20px;
-                    margin-top: 16px;
-                }}
-                
-                .browser-header {{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid #dee2e6;
-                }}
-                
-                .browser-position {{
-                    font-family: 'Courier New', monospace;
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #2c3e50;
-                }}
-                
-                .browser-link {{
-                    color: #007bff;
-                    text-decoration: none;
-                    font-size: 14px;
-                    font-weight: 500;
-                }}
-                
-                .browser-link:hover {{
-                    text-decoration: underline;
-                }}
-                
-                .tracks-container {{
-                    margin: 20px 0;
-                }}
-                
-                .track-row {{
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 12px;
-                    padding: 10px;
-                    background: #f8f9fa;
-                    border-radius: 6px;
-                }}
-                
-                .track-label {{
-                    width: 100px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: #495057;
-                }}
-                
-                .track-visualization {{
-                    flex: 1;
-                    height: 35px;
-                    position: relative;
-                    background: white;
-                    border: 1px solid #dee2e6;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    margin: 0 10px;
-                }}
-                
-                .track-bar {{
-                    position: absolute;
-                    bottom: 0;
-                    height: 100%;
-                    transition: all 0.3s ease;
-                }}
-                
-                .track-bar-ref {{
-                    background: linear-gradient(to top, rgba(0, 102, 204, 0.8), rgba(0, 102, 204, 0.3));
-                    left: 0;
-                }}
-                
-                .track-bar-alt {{
-                    background: linear-gradient(to top, rgba(255, 149, 0, 0.8), rgba(255, 149, 0, 0.3));
-                    right: 0;
-                }}
-                
-                .track-value {{
-                    position: absolute;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: white;
-                    padding: 2px 4px;
-                    border-radius: 3px;
-                    background: rgba(0,0,0,0.6);
-                }}
-                
-                .browser-legend {{
-                    display: flex;
-                    gap: 20px;
-                    margin-top: 20px;
-                    padding-top: 15px;
-                    border-top: 1px solid #dee2e6;
-                }}
-                
-                .legend-item {{
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 13px;
-                    color: #495057;
-                }}
-                
-                .legend-color {{
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 3px;
-                }}
-                
-                .legend-line {{
-                    width: 20px;
-                    height: 2px;
-                    border-top: 2px solid;
-                }}
-                
-                .track-interpretation {{
-                    margin-top: 20px;
-                    padding: 15px;
-                    background: #e9ecef;
-                    border-radius: 6px;
-                }}
-                
-                .track-interpretation h4 {{
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #2c3e50;
-                    margin-bottom: 10px;
-                }}
-                
-                .track-interpretation ul {{
-                    margin: 0;
-                    padding-left: 20px;
-                }}
-                
-                .track-interpretation li {{
-                    font-size: 12px;
-                    color: #495057;
-                    line-height: 1.6;
-                    margin-bottom: 6px;
-                }}
-            </style>
-        </div>
-        """
-    
-    def _generate_track_visualization(self, track_name: str, track_data: Dict[str, Any], color: str) -> str:
-        """Generate a single track visualization."""
-        ref_value = track_data.get('ref_mean', 0)
-        alt_value = track_data.get('alt_mean', 0)
-        max_increase = track_data.get('max_increase', 0)
-        
-        # Format values for display
-        ref_display = f"{ref_value:.4f}" if ref_value < 1 else f"{ref_value:.2f}"
-        alt_display = f"{alt_value:.4f}" if alt_value < 1 else f"{alt_value:.2f}"
-        increase_display = f"+{max_increase:.4f}" if max_increase >= 0 else f"{max_increase:.4f}"
-        
-        return f"""
-        <div class="track-row">
-            <div class="track-label">{track_name}</div>
-            <div class="track-visualization">
-                <div class="track-bar track-bar-ref" style="width: 45%; height: 100%;">
-                    <span class="track-value" style="left: 4px;">{ref_display}</span>
-                </div>
-                <div class="track-bar track-bar-alt" style="width: 45%; height: 100%;">
-                    <span class="track-value" style="right: 4px;">{alt_display}</span>
-                </div>
-                <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 2px; font-size: 9px; color: {color}; font-weight: bold;">
-                    {increase_display}
-                </div>
-            </div>
-        </div>
-        """
-    
-    def _generate_hgvs_notation_section(self, result: Dict[str, Any]) -> str:
-        """Generate HGVS notation and protein effect interpretation section."""
-        mutation = result.get('mutation', {})
-        variant_id = result.get('variant_id', 'Unknown')
-        
-        # Extract mutation details
-        gene = mutation.get('gene', 'Unknown')
-        protein_change = mutation.get('protein_change', '')
-        mutation_type = mutation.get('mutation_type', '')
-        exon = mutation.get('exon', '')
-        
-        # Parse variant for genomic notation
-        chrom, pos, ref, alt = '', '', '', ''
-        if ':' in variant_id:
-            parts = variant_id.split(':')
-            if len(parts) >= 3:
-                chrom = parts[0]
-                pos = parts[1]
-                ref_alt = parts[2] if len(parts) > 2 else ''
-                if '>' in ref_alt:
-                    ref, alt = ref_alt.split('>')
-        
-        # Generate HGVS notations
-        genomic_hgvs = f"NC_000012.12:g.{pos}{ref}>{alt}" if pos and ref and alt else "Not available"
-        coding_hgvs = f"NM_033360.3:c.35G>A" if gene == "KRAS" and "G12" in str(protein_change) else "Not determined"
-        protein_hgvs = f"NP_004976.2:{protein_change}" if protein_change else "Not applicable"
-        
-        # Determine functional impact
-        functional_impact = self._determine_functional_impact(mutation_type, protein_change)
-        
-        return f"""
-        <div class="hgvs-notation-section">
-            <h3>🧬 Variant Nomenclature & Interpretation</h3>
-            
-            <div class="hgvs-panel">
-                <table class="hgvs-table">
-                    <thead>
-                        <tr>
-                            <th>Notation Type</th>
-                            <th>HGVS Nomenclature</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Genomic (g.)</strong></td>
-                            <td class="mono-font">{genomic_hgvs}</td>
-                            <td>Chromosomal position on reference genome (GRCh38/hg38)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Coding (c.)</strong></td>
-                            <td class="mono-font">{coding_hgvs}</td>
-                            <td>Position relative to coding sequence start</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Protein (p.)</strong></td>
-                            <td class="mono-font">{protein_hgvs}</td>
-                            <td>Amino acid change in protein sequence</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div class="protein-effect">
-                    <h4>Protein Effect Interpretation</h4>
-                    <div class="effect-details">
-                        <div class="effect-item">
-                            <span class="effect-label">Gene:</span>
-                            <span class="effect-value">{gene}</span>
-                        </div>
-                        <div class="effect-item">
-                            <span class="effect-label">Exon:</span>
-                            <span class="effect-value">{exon if exon else 'Not specified'}</span>
-                        </div>
-                        <div class="effect-item">
-                            <span class="effect-label">Mutation Type:</span>
-                            <span class="effect-value">{mutation_type if mutation_type else 'Not specified'}</span>
-                        </div>
-                        <div class="effect-item">
-                            <span class="effect-label">Protein Change:</span>
-                            <span class="effect-value">{protein_change if protein_change else 'None'}</span>
-                        </div>
-                        <div class="effect-item">
-                            <span class="effect-label">Functional Impact:</span>
-                            <span class="effect-value {functional_impact['class']}">{functional_impact['impact']}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="impact-description">
-                        <p>{functional_impact['description']}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <style>
-                .hgvs-notation-section {{
-                    margin-top: 30px;
-                    padding: 20px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    border: 1px solid #dee2e6;
-                }}
-                
-                .hgvs-panel {{
-                    background: white;
-                    border-radius: 6px;
-                    padding: 20px;
-                    margin-top: 15px;
-                }}
-                
-                .hgvs-table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 25px;
-                }}
-                
-                .hgvs-table th {{
-                    background: #e9ecef;
-                    padding: 10px;
-                    text-align: left;
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #495057;
-                    border-bottom: 2px solid #dee2e6;
-                }}
-                
-                .hgvs-table td {{
-                    padding: 10px;
-                    border-bottom: 1px solid #dee2e6;
-                    font-size: 13px;
-                    color: #495057;
-                }}
-                
-                .mono-font {{
-                    font-family: 'Courier New', monospace;
-                    font-weight: 600;
-                    color: #2c3e50;
-                }}
-                
-                .protein-effect {{
-                    margin-top: 20px;
-                    padding-top: 20px;
-                    border-top: 1px solid #dee2e6;
-                }}
-                
-                .protein-effect h4 {{
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #2c3e50;
-                    margin-bottom: 15px;
-                }}
-                
-                .effect-details {{
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                    margin-bottom: 15px;
-                }}
-                
-                .effect-item {{
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }}
-                
-                .effect-label {{
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #6c757d;
-                    min-width: 100px;
-                }}
-                
-                .effect-value {{
-                    font-size: 13px;
-                    color: #2c3e50;
-                    font-weight: 500;
-                }}
-                
-                .effect-value.high-impact {{
-                    color: #dc3545;
-                    font-weight: 600;
-                }}
-                
-                .effect-value.moderate-impact {{
-                    color: #ffc107;
-                    font-weight: 600;
-                }}
-                
-                .effect-value.low-impact {{
-                    color: #28a745;
-                    font-weight: 600;
-                }}
-                
-                .impact-description {{
-                    background: #e9ecef;
-                    padding: 12px;
-                    border-radius: 4px;
-                    margin-top: 15px;
-                }}
-                
-                .impact-description p {{
-                    margin: 0;
-                    font-size: 12px;
-                    color: #495057;
-                    line-height: 1.6;
-                }}
-            </style>
-        </div>
-        """
-    
-    def _determine_functional_impact(self, mutation_type: str, protein_change: str) -> Dict[str, str]:
-        """Determine the functional impact of a mutation."""
-        # High impact mutations
-        if any(term in str(mutation_type).lower() for term in ['nonsense', 'frameshift', 'splice']):
-            return {
-                'impact': 'High Impact',
-                'class': 'high-impact',
-                'description': 'This variant is predicted to have a severe impact on protein function, potentially leading to loss of function or truncated protein.'
-            }
-        
-        # Check for known oncogenic mutations
-        if 'G12' in str(protein_change) or 'G13' in str(protein_change) or 'Q61' in str(protein_change):
-            return {
-                'impact': 'Oncogenic',
-                'class': 'high-impact',
-                'description': 'This is a well-characterized oncogenic mutation known to activate downstream signaling pathways and drive cancer progression.'
-            }
-        
-        # Moderate impact
-        if 'missense' in str(mutation_type).lower():
-            return {
-                'impact': 'Moderate Impact',
-                'class': 'moderate-impact',
-                'description': 'This missense variant results in an amino acid substitution that may affect protein function depending on the specific residue and domain affected.'
-            }
-        
-        # Low impact or unknown
-        return {
-            'impact': 'Unknown Impact',
-            'class': 'low-impact',
-            'description': 'The functional impact of this variant is not well characterized and requires further experimental validation.'
-        }
     
     def _format_variant_id(self, variant_id: str) -> str:
         """Format variant ID to prevent duplicates and improve readability."""

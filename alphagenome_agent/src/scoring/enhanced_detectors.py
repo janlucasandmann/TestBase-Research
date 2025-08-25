@@ -165,6 +165,7 @@ class EnhancerDetectionResult:
             "confidence": self.confidence,
             "confidence_score": round(self.confidence_score, 3),
             "region_type": self.genomic_context.region_type.value,
+            "gene": self.genomic_context.gene_name or "Unknown",
             "is_coding": self.genomic_context.is_coding,
             "positive_evidence": self.positive_marks,
             "missing_evidence": self.missing_marks,
